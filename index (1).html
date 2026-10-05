@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Anchor Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a single phone on a quiet page, with a short guide beside it that tracks where you are in the flow */
+:root {
+  --page: #f3f6f5; --page-fg: #102a2c; --page-muted: #4f6264; --page-line: #d4e2df; --page-card: #ffffff;
+  --ink: #102a2c; --teal: #0b5d5e; --teal-soft: #e3f0ee; --amber: #f2a33a; --amber-soft: #fdebcf;
+  --coral: #d9482a; --coral-soft: #fbe2da; --mint: #eef5f4; --app-bg: #ffffff; --app-muted: #5b6b6d; --app-line: #dfe8e6;
+  --display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --page: #0d1d1f; --page-fg: #e6f0ee; --page-muted: #9fb3b1; --page-line: #24393b; --page-card: #132a2c; color-scheme: dark } }
+:root[data-theme="dark"] { --page: #0d1d1f; --page-fg: #e6f0ee; --page-muted: #9fb3b1; --page-line: #24393b; --page-card: #132a2c; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--page); color: var(--page-fg); font-family: var(--body); margin: 0; padding-inline: 16px; padding-block: 28px 40px }
+.wrap { max-width: 1040px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 40px; align-items: start }
+@media (max-width: 860px) { .wrap { grid-template-columns: minmax(0, 1fr) } .guide { order: 2 } }
+.guide h1 { font-family: var(--display); font-weight: 800; font-size: clamp(30px, 4vw, 42px); margin: 6px 0 8px; letter-spacing: -0.01em; text-wrap: balance }
+.eyebrow { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--page-muted); font-weight: 600 }
+.guide p { color: var(--page-muted); line-height: 1.55; max-width: 60ch; margin: 0 0 14px }
+.steps { list-style: none; padding: 0; margin: 18px 0; display: grid; gap: 8px }
+.steps li { display: grid; grid-template-columns: 28px minmax(0,1fr); gap: 10px; align-items: start; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--page-line); background: var(--page-card) }
+.steps li b { display: block; font-weight: 600 }
+.steps li span.d { color: var(--page-muted); font-size: 13px }
+.steps .n { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; background: var(--page-line); color: var(--page-fg) }
+.steps li.on { border-color: var(--amber) }
+.steps li.on .n { background: var(--amber); color: #102a2c }
+.tips { font-size: 13px; color: var(--page-muted); border-top: 1px solid var(--page-line); padding-top: 12px }
+.reset { margin-top: 10px; font: 600 14px var(--body); background: transparent; color: var(--page-fg); border: 1px solid var(--page-line); border-radius: 999px; padding: 8px 16px; cursor: pointer }
+.reset:focus-visible, .phone button:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px }
+
+/* phone */
+.phone { width: 100%; max-width: 380px; margin: 0 auto; background: var(--ink); border-radius: 44px; padding: 12px; box-shadow: 0 20px 50px rgba(16,42,44,.25) }
+.screen { background: var(--app-bg); color: var(--ink); border-radius: 34px; min-height: 700px; overflow: hidden; display: flex; flex-direction: column; position: relative }
+.status { display: flex; justify-content: space-between; padding: 14px 24px 6px; font-size: 13px; font-weight: 600 }
+.notch { width: 110px; height: 26px; background: var(--ink); border-radius: 0 0 16px 16px; margin: -14px auto 0 }
+.view { padding: 8px 20px 22px; display: flex; flex-direction: column; gap: 12px; flex: 1 }
+.top { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--app-muted) }
+.back { background: none; border: 0; font: 600 13px var(--body); color: var(--teal); cursor: pointer; padding: 4px 0 }
+.view h2 { font-family: var(--display); font-weight: 700; font-size: 22px; margin: 2px 0 0; line-height: 1.2; text-wrap: balance }
+.sub { font-size: 14px; color: var(--app-muted); line-height: 1.45; margin: 0 }
+.card { background: var(--mint); border-radius: 16px; padding: 14px 16px }
+.card.alert { background: var(--coral-soft) }
+.card.warm { background: var(--amber-soft) }
+.row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px }
+.big { font-family: var(--display); font-weight: 800; font-size: 26px; font-variant-numeric: tabular-nums }
+.neg { color: var(--coral) }
+.small { font-size: 12.5px; color: var(--app-muted) }
+.banner { display: flex; gap: 10px; align-items: center; font-size: 13px; background: var(--ink); color: #fff; border-radius: 12px; padding: 10px 12px }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--coral); flex: none }
+.actions { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px }
+.chip { font: 600 13px var(--body); border-radius: 12px; border: 1px solid var(--app-line); background: #fff; color: var(--ink); padding: 10px 4px; cursor: pointer }
+.chip:hover { border-color: var(--teal) }
+.opt { text-align: left; font: 500 15px var(--body); background: var(--mint); border: 1.5px solid transparent; border-radius: 14px; padding: 14px 16px; cursor: pointer; color: var(--ink) }
+.opt:hover { border-color: var(--teal) }
+.opt small { display: block; color: var(--app-muted); font-size: 12.5px; margin-top: 2px }
+.btn { font: 700 15px var(--body); border-radius: 14px; padding: 14px; cursor: pointer; border: 1.5px solid var(--teal); background: #fff; color: var(--teal); width: 100% }
+.btn.solid { background: var(--teal); color: #fff }
+.link { background: none; border: 0; font: 600 14px var(--body); color: var(--teal); cursor: pointer; padding: 6px; text-decoration: underline; text-underline-offset: 3px }
+.quiet { color: var(--app-muted) }
+.bar { height: 10px; border-radius: 6px; background: var(--app-line); overflow: hidden }
+.bar i { display: block; height: 100% }
+.seg { display: flex; gap: 6px; flex-wrap: wrap }
+.seg button { font: 600 13px var(--body); border-radius: 999px; padding: 6px 12px; border: 1px solid var(--app-line); background: #fff; color: var(--ink); cursor: pointer }
+.seg button[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink) }
+dl.why { display: grid; grid-template-columns: 110px minmax(0,1fr); gap: 10px 12px; margin: 0; font-size: 14px }
+dl.why dt { color: var(--app-muted) } dl.why dd { margin: 0; font-weight: 600 }
+.note { font-size: 12.5px; color: var(--app-muted); font-style: italic; line-height: 1.45 }
+.grow { flex: 1 }
+.tick { width: 64px; height: 64px; border-radius: 50%; background: var(--teal-soft); color: var(--teal); display: grid; place-items: center; font-size: 30px; font-weight: 800; margin: 30px auto 4px }
+.center { text-align: center }
+table.cmp { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums }
+table.cmp th, table.cmp td { padding: 8px 6px; border-bottom: 1px solid var(--app-line); text-align: right }
+table.cmp th:first-child, table.cmp td:first-child { text-align: left }
+@media (prefers-reduced-motion: no-preference) { .view.anim { animation: in .22s ease-out } @keyframes in { from { opacity: .4; transform: translateY(6px) } to { opacity: 1; transform: none } } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <section class="guide">
+    <div class="eyebrow">Team Odyssey · ProduScope 2026</div>
+    <h1>Anchor: try the pause flow</h1>
+    <p>This is a clickable prototype. It's a fake app screen with example numbers for our persona Rohan, who has a ₹10,000 monthly SIP and is saving for a home in 2032. Tap <b>Pause</b> on the SIP to start.</p>
+    <ol class="steps" id="steps">
+      <li data-k="home"><span class="n">1</span><span><b>Rohan taps Pause</b><span class="d">Markets are down 13.6% this year.</span></span></li>
+      <li data-k="reason"><span class="n">2</span><span><b>Anchor asks why</b><span class="d">One tap. It can be skipped.</span></span></li>
+      <li data-k="impact"><span class="n">3</span><span><b>Shows the effect on his goal</b><span class="d">Facts and a range, no forecast.</span></span></li>
+      <li data-k="why"><span class="n">4</span><span><b>Explains itself</b><span class="d">What data and assumptions it used.</span></span></li>
+      <li data-k="decide"><span class="n">5</span><span><b>He decides</b><span class="d">Four equal choices, or decide in 48 hours.</span></span></li>
+    </ol>
+    <p class="tips">Try the other reasons too. With “I need the cash”, Anchor skips the goal screen and goes straight to options, with no lecture. With “My fund is lagging”, it only shows how the fund compares and never names another fund.</p>
+    <button class="reset" id="reset" type="button">Start again</button>
+  </section>
+
+  <div class="phone" aria-label="Phone prototype">
+    <div class="screen">
+      <div class="notch"></div>
+      <div class="status"><span>9:41</span><span>5G · 82%</span></div>
+      <div id="view"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SIP = 10000, MONTHS = 72;
+const fmtL = v => "₹" + (v / 100000).toFixed(2) + " L";
+const cost = (k, rate) => { const r = Math.pow(1 + rate, 1 / 12) - 1; let s = 0; for (let m = 0; m < k; m++) s += SIP * Math.pow(1 + r, MONTHS - m); return s; };
+const full = rate => cost(MONTHS, rate);
+const state = { screen: "home", reason: null, months: 12, rate: 0.12, choice: null, from: "impact" };
+const view = document.getElementById("view");
+
+function go(screen, patch) { Object.assign(state, patch || {}, { screen }); render(); }
+
+const screens = {
+  home: () => `
+    <div class="view">
+      <div class="top">My SIPs</div>
+      <div class="banner"><span class="dot"></span><span>Nifty is down 13.6% in 2026 (as of 29 Sep)</span></div>
+      <div class="card">
+        <div class="small">Flexi Cap Fund · Direct · Growth</div>
+        <div class="row"><span class="big">₹10,000<span class="small"> / month</span></span></div>
+        <div class="row small"><span>Next debit: 10 Oct 2026</span><span class="neg">Down 8.2% from peak</span></div>
+      </div>
+      <div class="actions">
+        <button class="chip" data-go="reason">Pause</button>
+        <button class="chip" data-go="reason">Skip</button>
+        <button class="chip" data-go="reason">Reduce</button>
+        <button class="chip" data-go="reason">Stop</button>
+      </div>
+      <div class="card warm small">Goal linked: <b>Home 2032</b> · 6 years away</div>
+      <div class="grow"></div>
+      <p class="note center">Prototype with example data. Tap any SIP action to see Anchor.</p>
+    </div>`,
+  reason: () => `
+    <div class="view">
+      <button class="back" data-go="home">‹ Back</button>
+      <h2>Before you pause, what's on your mind?</h2>
+      <p class="sub">This helps us show what matters to you. You can skip it.</p>
+      <button class="opt" data-reason="market">Market is falling<small>Worried it will fall further</small></button>
+      <button class="opt" data-reason="cash">I need the cash<small>Expense or emergency</small></button>
+      <button class="opt" data-reason="fund">My fund is lagging<small>Not happy with returns</small></button>
+      <button class="opt" data-reason="goal">Goal reached or changed<small>Plans are different now</small></button>
+      <div class="grow"></div>
+      <button class="link quiet" data-reason="skip">Skip, just pause</button>
+    </div>`,
+  impact: () => {
+    const c = cost(state.months, state.rate), f = full(state.rate);
+    const lo = cost(state.months, 0.08), hi = cost(state.months, 0.12);
+    const pctNow = 92, pctAfter = Math.round(pctNow * (1 - c / f));
+    const seg = (key, vals, lab) => vals.map((v, i) => `<button type="button" aria-pressed="${state[key] === v}" data-set="${key}" data-val="${v}">${lab[i]}</button>`).join("");
+    return `
+    <div class="view">
+      <button class="back" data-go="reason">‹ Back</button>
+      <h2>Your “Home 2032” goal</h2>
+      <div class="seg" aria-label="Pause length">${seg("months", [3, 6, 12], ["Pause 3 months", "6 months", "12 months"])}</div>
+      <div>
+        <div class="row small"><span>On track today</span><span>${pctNow}%</span></div>
+        <div class="bar"><i style="width:${pctNow}%;background:var(--teal)"></i></div>
+      </div>
+      <div>
+        <div class="row small"><span>If paused ${state.months} months</span><span>${pctAfter}%</span></div>
+        <div class="bar"><i style="width:${pctAfter}%;background:var(--coral)"></i></div>
+      </div>
+      <div class="card alert">
+        <div class="big neg">~${fmtL(c)} less</div>
+        <div class="small">by 2032, if you pause ${state.months} months. Range ${fmtL(lo)} to ${fmtL(hi)} at 8% to 12% yearly returns.</div>
+      </div>
+      <div class="seg" aria-label="Assumed return">${seg("rate", [0.08, 0.10, 0.12], ["Assume 8%", "10%", "12%"])}</div>
+      <div class="card small">Today ₹10,000 buys about 16% more units than in January, because prices are 13.6% lower.</div>
+      <div class="card small">In the 2008 crash, pausing a ₹10k SIP and restarting later still meant ₹10.3 L less after 20 years (Upstox study).</div>
+      <button class="link" data-go="why" data-from="impact">Why am I seeing this?</button>
+      <button class="btn solid" data-go="decide">See my options</button>
+    </div>`;
+  },
+  cash: () => `
+    <div class="view">
+      <button class="back" data-go="reason">‹ Back</button>
+      <h2>Got it. Here are your options.</h2>
+      <p class="sub">Your reason makes sense. Pick whatever works for you.</p>
+      ${decideButtons(["skip", "reduce", "pause"])}
+      <div class="card small">Skipping one month keeps the SIP running, so you don't have to set it up again later.</div>
+      <div class="grow"></div>
+    </div>`,
+  fund: () => `
+    <div class="view">
+      <button class="back" data-go="reason">‹ Back</button>
+      <h2>How your fund compares</h2>
+      <p class="sub">Returns per year, against the average flexi-cap fund. Example data.</p>
+      <table class="cmp">
+        <tr><th></th><th>1 year</th><th>3 years</th><th>5 years</th></tr>
+        <tr><td>Your fund</td><td class="neg">-6.1%</td><td>13.4%</td><td>16.2%</td></tr>
+        <tr><td>Category avg</td><td class="neg">-7.0%</td><td>12.8%</td><td>15.1%</td></tr>
+      </table>
+      <div class="card small">Most flexi-cap funds are down this year. We don't recommend funds. This is only how yours compares.</div>
+      <button class="link" data-go="why" data-from="fund">Why am I seeing this?</button>
+      <button class="btn solid" data-go="decide">See my options</button>
+    </div>`,
+  goal: () => `
+    <div class="view">
+      <button class="back" data-go="reason">‹ Back</button>
+      <h2>Let's check your goal</h2>
+      <p class="sub">Your goal may have changed. Here's where it stands.</p>
+      <div class="card"><div class="row"><span>Home 2032</span><span class="big">92%</span></div><div class="small">On track with the current SIP</div></div>
+      <div class="card small">You can edit the goal amount or date at any time. It changes what we show you next time.</div>
+      <button class="btn">Edit my goal</button>
+      <button class="btn solid" data-go="decide">See my options</button>
+    </div>`,
+  why: () => `
+    <div class="view">
+      <button class="back" data-go="${state.from}">‹ Back</button>
+      <h2>Why am I seeing this?</h2>
+      <dl class="why">
+        <dt>Your reason</dt><dd>${{ market: "Market is falling", fund: "My fund is lagging", goal: "Goal reached or changed" }[state.reason] || "Not given"}</dd>
+        <dt>Goal</dt><dd>Home 2032 · 6 years away</dd>
+        <dt>Fund type</dt><dd>Equity (flexi cap)</dd>
+        <dt>Market now</dt><dd>Nifty down 13.6% in 2026</dd>
+        <dt>Assumption</dt><dd>8% to 12% yearly return (you can change it)</dd>
+        <dt>Data as of</dt><dd>NAV of 3 Oct 2026</dd>
+      </dl>
+      <div class="card small">The numbers come from a fixed formula, not from AI. AI only writes the plain-English text.</div>
+      <p class="note">This is information, not investment advice. We don't predict the market or suggest funds. The decision is yours.</p>
+    </div>`,
+  decide: () => `
+    <div class="view">
+      <button class="back" data-go="${({ market: "impact", fund: "fund", goal: "goal" })[state.reason] || "reason"}">‹ Back</button>
+      <h2>What would you like to do?</h2>
+      ${decideButtons(["continue", "skip", "reduce", "pause"])}
+      <button class="link" data-choice="later">Decide in 48 hours instead</button>
+      <div class="grow"></div>
+      <p class="note center">All four options are the same size. Pausing is always one tap.</p>
+    </div>`,
+  done: () => {
+    const msg = {
+      continue: ["SIP continues", "₹10,000 will be invested on 10 Oct as planned."],
+      skip: ["October skipped", "Your SIP restarts automatically on 10 Nov."],
+      reduce: ["SIP reduced to ₹5,000", "You can raise it back any time from My SIPs."],
+      pause: ["SIP paused", "We'll check in with you on 3 Jan 2027 to see if you want to restart."],
+      later: ["Reminder set", "Nothing has changed yet. We'll remind you on 7 Oct at 9:00 AM."],
+    }[state.choice];
+    return `
+    <div class="view center">
+      <div class="tick">✓</div>
+      <h2>${msg[0]}</h2>
+      <p class="sub">${msg[1]}</p>
+      <div class="card small">Was this screen helpful?
+        <div class="seg" style="justify-content:center;margin-top:8px"><button type="button" data-fb>Yes</button><button type="button" data-fb>No</button></div>
+      </div>
+      <div class="grow"></div>
+      <button class="btn" data-go="home">Back to My SIPs</button>
+    </div>`;
+  },
+};
+
+function decideButtons(keys) {
+  const lab = { continue: "Continue ₹10,000", skip: "Skip October only", reduce: "Reduce to ₹5,000", pause: "Pause anyway" };
+  return keys.map(k => `<button class="btn" data-choice="${k}">${lab[k]}</button>`).join("");
+}
+
+const stepFor = { home: "home", reason: "reason", impact: "impact", cash: "decide", fund: "impact", goal: "impact", why: "why", decide: "decide", done: "decide" };
+function render(animate = true) {
+  view.innerHTML = screens[state.screen]();
+  if (animate && view.firstElementChild) view.firstElementChild.classList.add("anim");
+  document.querySelectorAll("#steps li").forEach(li => li.classList.toggle("on", li.dataset.k === stepFor[state.screen]));
+}
+
+view.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.reason) {
+    const r = b.dataset.reason;
+    if (r === "skip") return go("decide", { reason: null });
+    return go({ market: "impact", cash: "cash", fund: "fund", goal: "goal" }[r], { reason: r });
+  }
+  if (b.dataset.set) { state[b.dataset.set] = Number(b.dataset.val); return render(false); }
+  if (b.dataset.choice) return go("done", { choice: b.dataset.choice });
+  if (b.hasAttribute("data-fb")) { b.closest(".card").innerHTML = "Thanks for the feedback."; return; }
+  if (b.dataset.go) return go(b.dataset.go, b.dataset.from ? { from: b.dataset.from } : null);
+});
+document.getElementById("reset").addEventListener("click", () => go("home", { reason: null, months: 12, rate: 0.12, choice: null }));
+render();
+</script>
+</body>
+</html>
